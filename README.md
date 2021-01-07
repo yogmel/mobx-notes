@@ -58,12 +58,12 @@ class Person {
 
   constructor(name: string) {
     this.firstName = name;
+    makeAutoObservable(this);
   }
 
   @action // using a decorator to set a method as an action
   updateFirstName(name: string) {
     this.firstName = name;
-    makeAutoObservable(this);
   }
 }
 
@@ -84,7 +84,7 @@ updater();
 
 ### Reactions
 
-Reactions are the way to know an observable has changed and do something after that.
+Reactions are the way to know an observable has changed and do something after that. The abstractions below are rarely used, because we will probably use the specific version of mobx, depending on the chosen framework, like `mobx-react`.
 
 There are 3 main types of reactions:
 - autorun: tracks every observable accessed inside it, needs to be disposed
@@ -92,10 +92,54 @@ There are 3 main types of reactions:
 - when: also triggered by a condition but doesn't need to be disposed - it runs only once after the condition met and then it is automatically disposed
 - Observables used after async code won't be tracked
 
+`autorun(effect: (reaction) => void)`
 ```ts
-autorun(async () => {
+autorun(() => {
   console.log(`Person name is: ${newPerson.firstName}`); // as firstName is an observable, this will be triggered every time it changes
 })
+```
 
+`when(predicate: () => boolean, effect?: () => void, options?)`
+```ts
+class Person {
+  @observable
+  firstName: string;
+  @observable
+  age: number;
+
+  constructor(name: string) {
+    this.firstName = name;
+
+    when(
+      () => this.age > 99, // condition
+      () => this.bury() // effect
+    )
+  }
+
+  @action
+  bury() {
+    console.log(`${this.firstName} is dead`);
+  }
+}
+```
+
+`reaction(() => value, (value, previousValue, reaction) => { sideEffect }, options?)`
+```ts
+reaction(
+  () => newPerson.age > 99, // condition
+  () => newPerson.bury() // effect
+);
+```
+
+**What does it meant for a reaction to be disposed?**
+Reactions watch for changes forever, and if used when not necessary, it can lead to memory leaks. Use the disposed function returned from reaction functions to stop and unsubscribe them.
+
+```ts
+const disposer = autorun(() => {
+    console.log(counter.count)
+})
+
+// stops the autorun
+disposer();
 ```
 
