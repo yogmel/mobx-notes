@@ -1,14 +1,15 @@
-import { action, autorun, makeAutoObservable, observable, reaction, runInAction, when } from "mobx";
+import { action, autorun, makeAutoObservable, reaction, runInAction, when } from "mobx";
 
 class Person {
-  @observable // using a decorator to make the firstName variable an observable
   firstName: string;
-  @observable
   age: number;
+  dollars: number;
 
-  constructor(name: string, age: number) {
+  constructor(name: string, age: number, dollars: number) {
     this.firstName = name;
     this.age = age;
+    this.dollars = dollars;
+
     makeAutoObservable(this);
     when(
       () => this.age > 99, // condition
@@ -16,21 +17,23 @@ class Person {
     )
   }
 
-  @action
+  get euros() {
+    return this.dollars * 2;
+  }
+
   updateFirstName(name: string) {
     this.firstName = name;
   }
-  @action
   bury() {
     console.log(`${this.firstName} is dead`);
   }
 }
 
-const newPerson = new Person("Aloka", 25);
+const newPerson = new Person("Aloka", 25, 10);
 
 // reacting
 autorun(() => {
-  console.log(`Person name is: ${newPerson.firstName}`)
+  console.log(`Person name is: ${newPerson.firstName}, age ${newPerson.age} with $${newPerson.dollars}`)
 });
 
 reaction(
@@ -44,6 +47,7 @@ newPerson.updateFirstName("Mobx");
 runInAction(() => {
     newPerson.firstName = "Alokaa";
     newPerson.age = 100;
+    newPerson.dollars = 100;
 })
 
 const updater = action(() => {

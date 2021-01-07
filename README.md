@@ -107,8 +107,9 @@ class Person {
   @observable
   age: number;
 
-  constructor(name: string) {
+  constructor(name: string, age: number) {
     this.firstName = name;
+    this.age = age;
 
     when(
       () => this.age > 99, // condition
@@ -143,3 +144,32 @@ const disposer = autorun(() => {
 disposer();
 ```
 
+### Computed values
+
+Computed values are derivations of the state, similar to reactions but instead of producing side effects, they return a value.
+
+They can be used as decorators or functions and are automatically updated just like observables. They are cached if used inside reactions.
+
+They are always getters in classes.
+
+```ts
+class Person {
+  @observable
+  firstName: string;
+  @observable
+  dollars: number;
+
+  constructor(name: string, dollars: number) {
+    this.firstName = name;
+    this.dollars = dollars;
+  }
+
+  @computed
+  get euros() {
+    return this.dollars * 2;
+  }
+}
+```
+
+**Updates in MobX**
+If used `makeAutoObservable()` or `makeObservable()` in classes, there is no need to use decorators to set observables, actions or computed.
