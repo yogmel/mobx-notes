@@ -1,4 +1,7 @@
 import './view/TodoList';
+import ConsoleTodoList from './view/TodoList';
+
+ConsoleTodoList();
 
 function App() {
   return (
