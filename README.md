@@ -173,3 +173,142 @@ class Person {
 
 **Updates in MobX**
 If used `makeAutoObservable()` or `makeObservable()` in classes, there is no need to use decorators to set observables, actions or computed.
+
+---
+
+## Architecture
+
+### What does MobX reacts to?
+
+> MobX reacts to any existing observable propert that is read during the execution of a tracked function"
+
+- "reading" references an object property, when accessed by, for example: `obj.name` or `obj['name']`.
+- "tracked functions" are computed expressions, the `render()` method of and observable component and functions that are passed as params in `reaction()` and `autorun()`.
+- "during" means that only those observables that are being read while the function is executing are tracked.
+
+
+**MobX won't react to**
+- Values that are obtained from observables, outside a tracked function. It needs to know when to update, so if the function is outside the `autorun()` function, for example, it won't update. This is for optimization, so only what you need to observe triggers an update.
+- Observables that are read in an async invoked code block.
+
+```ts
+autorun(async () => {
+  console.log(newPerson.firstName); // this will observed
+})
+
+autorun(async () => {
+  await waitForPromise();
+  console.log(newPerson.firstName); // this won't be observed
+})
+
+console.log(newPerson.firstName); // this won't be observed
+```
+
+### MobX Store
+
+Stores stays between the http service (backend and database) and frontend.
+
+- **Domain store**: manages the application data and logic. Collection of objects.
+- **Domain object**: manages specific domain logic, and can be connected to the domain store.
+- **UI store**: share global UI information between application or specific pages.
+
+```
+/stores
+  /data
+    data-store.ts
+    todo-store.ts
+    ui-store.ts
+  /ui
+    global-view.ts
+    ui-store.ts
+  root-store.ts
+```
+
+`root-store.ts`
+```ts
+import DataStore from './data/data-store';
+import UiStore from './ui/ui-store';
+
+export default class RootStore {
+  dataStore: DataStore;
+  uiStore: UiStore;
+
+  constructor() {
+    this.dataStore = new DataStore(this);
+    this.uiStore = new UiStore(this);
+  }
+}
+```
+
+`global-view.ts`
+```ts
+import { observable } from 'mobx';
+import RootStore from './../RootStore';
+
+export default class GlobalView {
+  @observable
+  themeColor: string = 'blue';
+
+  constructor(rootStore: RootStore) {}
+}
+```
+
+`ui-store.ts`
+```ts
+import { observable } from 'mobx';
+import GlobalView from './GlobalView';
+import RootStore from './../RootStore';
+
+export default class UiStore {
+  globalView: GlobalView;
+
+  constructor(rootStore: RootStore) {}
+}
+```
+
+`data-store.ts`
+```ts
+import { observable } from 'mobx';
+import GlobalView from './GlobalView';
+import RootStore from './../RootStore';
+
+export default class DataStore {
+  todoStore: TodoStore;
+  userStore: UserStore;
+
+  constructor(rootStore: RootStore) {
+    this.todoStore = new TodoStore(rootStore);
+    this.userStore = new UserStore(rootStore);
+  }
+}
+```
+
+`todo-store.ts`
+```ts
+import { observable } from 'mobx';
+import RootStore from './RootStore';
+
+class Todo {}
+
+export default class UiStore {
+  @observable
+  list: Todo[] = [];
+
+  constructor(private rootStore: RootStore) {}
+}
+```
+
+`user-store.ts`
+```ts
+import { observable } from 'mobx';
+import RootStore from './RootStore';
+
+class User {}
+
+export default class UiStore {
+  @observable
+  list: User[] = [];
+
+  constructor(private rootStore: RootStore) {}
+}
+```
