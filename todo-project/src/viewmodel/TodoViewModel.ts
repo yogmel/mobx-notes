@@ -1,4 +1,4 @@
-export class Todo {
+export class TodoViewModel {
   constructor(
     private _id: number,
     private _description: string,

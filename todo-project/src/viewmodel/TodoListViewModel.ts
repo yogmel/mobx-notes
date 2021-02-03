@@ -1,12 +1,13 @@
 import { makeAutoObservable } from "mobx";
+import AppViewModel from "./AppViewModel";
 
-import { Todo } from "./TodoViewModel";
+import { TodoViewModel } from "./TodoViewModel";
 
-export class TodoList {
-  todos: Todo[] = [];
+export default class TodoListViewModel {
+  todos: TodoViewModel[] = [];
   id = 0;
 
-  constructor() {
+  constructor(public appViewModel: AppViewModel) {
     makeAutoObservable(this);
   }
 
@@ -23,7 +24,7 @@ export class TodoList {
   }
 
   addTodo(todo: string) {
-    const newTodo = new Todo(this.id, todo, false);
+    const newTodo = new TodoViewModel(this.id, todo, false);
     this.todos.push(newTodo);
     this.id++;
   }

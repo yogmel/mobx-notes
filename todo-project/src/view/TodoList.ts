@@ -1,8 +1,8 @@
 import { reaction } from "mobx";
-import { TodoList } from "../viewmodel";
+import TodoListViewModel from "../viewmodel/TodoListViewModel";
 
 export default function ConsoleTodoList() {
-  const newTodoList = new TodoList();
+  const newTodoList = new TodoListViewModel();
   
   reaction(
     () => newTodoList.todos.length,

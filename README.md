@@ -255,7 +255,6 @@ export default class GlobalView {
 
 `ui-store.ts`
 ```ts
-import { observable } from 'mobx';
 import GlobalView from './GlobalView';
 import RootStore from './../RootStore';
 
