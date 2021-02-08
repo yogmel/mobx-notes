@@ -1,53 +1,94 @@
 import { makeAutoObservable } from "mobx";
 import { Todo } from "../model/Todo";
+import { TodoList } from "../model/TodoList";
 import AppViewModel from "./AppViewModel";
 
-export default class TodoListViewModel {
-  todos: Todo[] = [];
-  id = 0;
 
-  constructor(public appViewModel: AppViewModel) {
+export default class TodoListViewModel {
+  _todoLists: TodoList[] = [];
+  appViewModel: AppViewModel
+
+  constructor(appViewModel: AppViewModel) {
+    this.appViewModel = appViewModel;
     makeAutoObservable(this);
   }
 
-  get allTodos() {
-    return this.todos;
+  get todoLists() {
+    return this._todoLists;
   }
 
-  get completedTodos() {
-    return this.todos.filter((todo) => todo.isCompleted === true);
+  get allCompletedTodos() {
+    return this.getAllCompletedTodos();
   }
 
-  get notCompletedTodos() {
-    return this.todos.filter((todo) => todo.isCompleted === false);
+  get allNotCompletedTodos() {
+    return this.getAllNotCompletedTodos();
   }
 
-  addTodo(todo: string) {
-    const newTodo = new Todo(this.id, todo, false);
-    this.todos.push(newTodo);
-    this.id++;
+  createTodoList(userId: number, todo?: Todo) {
+    if (todo) {
+      this._todoLists.push(new TodoList(userId, [todo]));
+    } else {
+      this._todoLists.push(new TodoList(userId));
+    }
   }
 
-  showNotCompletedTodos() {
-    this.notCompletedTodos.forEach((todo) => {
-      console.log(todo.description);
+  getAllCompletedTodos(): Todo[]{
+    let completedTodos: Todo[] = [];
+
+    this.todoLists.forEach((todoList) => 
+    {
+      completedTodos = [...completedTodos, ...todoList.completedTodos];
     });
+    return completedTodos;
   }
 
-  getIndexFromId(id: number) {
-    return this.todos.findIndex((todo) => todo.id === id);
+  getAllNotCompletedTodos(): Todo[]{
+    let completedTodos: Todo[] = [];
+    this.todoLists.forEach((todoList) => 
+    {
+      completedTodos = [...completedTodos, ...todoList.notCompletedTodos];
+    });
+    return completedTodos;
   }
 
-  updateDescription(id: number, description: string) {
-    this.todos[this.getIndexFromId(id)].description = description;
+  // addTodo(userId: number, todo: string) {
+  //   const newTodo = new Todo(this.id, userId, todo, false);
+  //   this.todoLists.push(newTodo);
+  //   this.id++;
+  //   console.log('addTodo', this.todoLists);
+  // }
+
+  // showNotCompletedTodos() {
+  //   this.notCompletedTodos.forEach((todo) => {
+  //     console.log(todo.description);
+  //   });
+  // }
+
+  getIndexFromId(userId: number) {
+    return this.todoLists.findIndex((todoList) => todoList.userId === userId);
   }
 
-  toggleCompletionState(id: number) {
-    this.todos[this.getIndexFromId(id)].isCompleted = !this.todos[id]
-      .isCompleted;
+  // updateDescription(id: number, description: string) {
+  //   this.todoLists[this.getIndexFromId(id)].description = description;
+  // }
+
+  // toggleCompletionState(id: number) {
+  //   this.todoLists[this.getIndexFromId(id)].isCompleted = !this.todoLists[id]
+  //     .isCompleted;
+  // }
+
+  removeTodoList(userId: number): void {
+    this.todoLists.splice(this.getIndexFromId(userId), 1);
   }
 
-  removeTodo(id: number) {
-    this.todos.splice(this.getIndexFromId(id), 1);
+  getUserTodoList(userId: number): TodoList | undefined {
+    return this.todoLists.find(todoList => userId === todoList.userId);
+  }
+
+  addTodoInTodoList(userId: number, description: string): void {
+    const userTodoList = this.getUserTodoList(userId);
+    const newTodo = new Todo(userId, userId, description);
+    userTodoList?.addNewTodo(newTodo);
   }
 }

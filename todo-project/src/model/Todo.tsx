@@ -1,18 +1,28 @@
+import { makeAutoObservable } from "mobx";
+
 export interface TodoDTO {
     id: number;
+    userId: number;
     description: string;
-    isCompleted: boolean;
+    isCompleted?: boolean;
 }
 
 export class Todo {
     constructor(
       private _id: number,
+      private _userId: number,
       private _description: string,
-      private _isCompleted: boolean
-    ) {}
+      private _isCompleted = false
+    ) {
+      makeAutoObservable(this);
+    }
   
     get id() {
       return this._id;
+    }
+
+    get userId() {
+      return this._userId;
     }
   
     get isCompleted() {

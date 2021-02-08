@@ -1,12 +1,27 @@
-import './view/TodoList';
-import ConsoleTodoList from './view/TodoList';
+import React, { useState } from 'react';
+import TodoLists from './view/TodoLists';
+import UserList from './view/UserList';
+import AppViewModel from './viewmodel/AppViewModel';
 
-ConsoleTodoList();
+export interface AppProps {
+  editor: AppViewModel;
+}
 
-function App() {
+function App(props: AppProps) {
+  const { editor } = props;
+  
+  const [listView, setListView] = useState(true);
+  const toggleView = () => setListView(!listView);
+
   return (
     <div>
-      <h1>interact with the prompt</h1>
+      <button onClick={toggleView}>Toggle View</button>
+      {listView && (
+        <TodoLists editor={editor.todoListViewModel} />
+      )}
+      {!listView && (
+        <UserList editor={editor.userViewModel} />
+      )}
     </div>
   );
 }
